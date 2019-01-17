@@ -16,7 +16,7 @@ MainWindow::~MainWindow() {
     delete ui;
 }
 
-// -----------------------------------------------------------------------------
+// load data routine
 
 void MainWindow::openDirectory() {
     // get main directory path
@@ -66,9 +66,6 @@ void MainWindow::openDirectory() {
             int imgId =
                 imgName.split(".", QString::SkipEmptyParts).at(0).toInt();
 
-            // print image name and image number
-            // QTextStream(stdout) << imgName << " | " << imgId << endl;
-
             // get image
             QFile *f = new QFile(subDirPath + "/" + imgName);
             QImage Image = QImage(f->fileName());
@@ -107,12 +104,12 @@ void MainWindow::openDirectory() {
                     }
                 }
             } else {
-                // QTextStream(stdout) << bpp << endl;
                 ui->textBrowser->append("Wrong Input: Pictures must be binary");
                 CleanMemory();
                 QApplication::restoreOverrideCursor();
                 return;
             }
+
             // add image to vector
             tVector->push_back(img);
 
@@ -133,6 +130,7 @@ void MainWindow::openDirectory() {
     information += "\nTestset size:" + QString::number(test_images.size());
     ui->textBrowser->append(information);
 
+    // ad-hoc values, depended on maxWidth/maxHeight
     maxWidth = 50;
     maxHeight = 50;
 
@@ -151,7 +149,7 @@ void MainWindow::openDirectory() {
     initializeConfussionMatrix(numOfClasses);
 }
 
-// -----------------------------------------------------------------------------
+// confussion matrix routines
 
 void MainWindow::resetConfussionMatrix() {
     uiConfussionMatrix->clearContents();
@@ -196,7 +194,7 @@ void MainWindow::showConfussionMatrix() {
     uiConfussionMatrix->show();
 }
 
-// -----------------------------------------------------------------------------
+// normalization of images
 
 void MainWindow::Normalize(int maxWidth, int maxHeight,
                            QVector<QVector<QVector<int>>> &v) {
@@ -223,7 +221,7 @@ void MainWindow::Normalize(int maxWidth, int maxHeight,
     }
 }
 
-// -----------------------------------------------------------------------------
+// cleanup routines
 
 void MainWindow::cleanConfussionMatrix() {
     confMatrix.clear();
@@ -268,7 +266,7 @@ void MainWindow::Exit() {
     QCoreApplication::exit(0);
 }
 
-// -----------------------------------------------------------------------------
+// when start-classification is clicked
 
 void MainWindow::on_startButton_clicked() {
     if (!train_images.size() || !test_images.size()) {
@@ -336,7 +334,7 @@ void MainWindow::on_startButton_clicked() {
     showConfussionMatrix();
 }
 
-// -----------------------------------------------------------------------------
+// classification routine
 
 double MainWindow::classify() {
     int correct = 0;
@@ -368,7 +366,8 @@ double MainWindow::classify() {
     return ((double)correct * 100) / testset.size();
 }
 
-// -----------------------------------------------------------------------------
+// recursive subdivisions
+// http://users.iit.demokritos.gr/~bgat/PRHandRec2010.pdf
 
 int MainWindow::find_index(QVector<int> v1) {
     // prefix sum vector
@@ -513,7 +512,7 @@ void MainWindow::recursive_div(QVector<QVector<int>> img, int gran, int choice,
     int Yq = find_horizontal_point(img);
     int Y0 = Yq / 2;
 
-    // -------------------------------------------------------------------------
+    // do sub-images
 
     // left-up sub-image
     QVector<QVector<int>> left_up_sub_img;
@@ -632,7 +631,7 @@ void MainWindow::subdivisions(short choice) {
     }
 }
 
-// -----------------------------------------------------------------------------
+// projections
 
 void MainWindow::projections(short choice) {
     // assign projections
@@ -673,7 +672,7 @@ void MainWindow::projections(short choice) {
     }
 }
 
-// -----------------------------------------------------------------------------
+// zones
 
 void MainWindow::zones(short choice) {
     int p;
@@ -693,7 +692,7 @@ void MainWindow::zones(short choice) {
     else
         choice_vector = &test_images;
 
-    // for ever image
+    // for every image
     for (int m = 0; m < choice_vector->size(); m++) {
         QVector<QVector<int>> cur_img = (*choice_vector)[m]; // current image
         for (int k = 0; k < cur_img.size() / p; k++) {
@@ -714,7 +713,7 @@ void MainWindow::zones(short choice) {
     }
 }
 
-// -----------------------------------------------------------------------------
+// jaccard-yule distances
 
 double MainWindow::jaccard_yule(short choice) {
     int correct = 0;
